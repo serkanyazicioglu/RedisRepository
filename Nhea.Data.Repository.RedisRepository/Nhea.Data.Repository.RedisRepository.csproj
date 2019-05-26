@@ -4,14 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Serkan Yazıcıoğlu</Authors>
     <Company>Serkan Yazıcıoğlu</Company>
-    <Description>A .Net standard library which provides logging, mailing, convertion and base repository classes.</Description>
+    <Description>.Net standard repository library for Redis.</Description>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
     <PackageTags>repository, nhea, redis, cache</PackageTags>
     <PackageReleaseNotes>Minor changes</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
