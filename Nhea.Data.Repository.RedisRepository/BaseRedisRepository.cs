@@ -12,12 +12,12 @@ namespace Nhea.Data.Repository.RedisRepository
 {
     public abstract class BaseRedisRepository<T> : IDisposable where T : RedisDocument, new()
     {
-        private static string ConnectionString { get; set; }
+        public abstract string ConnectionString { get; }
 
         private static object connectLockObject = new object();
 
         private static ConnectionMultiplexer connection = null;
-        public static ConnectionMultiplexer Connection
+        public ConnectionMultiplexer Connection
         {
             get
             {
@@ -39,7 +39,7 @@ namespace Nhea.Data.Repository.RedisRepository
         private static object databaseLockObject = new object();
 
         public static IDatabase currentDatabase = null;
-        public static IDatabase CurrentDatabase
+        public IDatabase CurrentDatabase
         {
             get
             {
@@ -61,7 +61,7 @@ namespace Nhea.Data.Repository.RedisRepository
         private static object serverLockObject = new object();
 
         public static IServer currentServer = null;
-        public static IServer CurrentServer
+        public IServer CurrentServer
         {
             get
             {
@@ -81,7 +81,7 @@ namespace Nhea.Data.Repository.RedisRepository
         }
 
         private static ISubscriber currentSubscriber = null;
-        public static ISubscriber CurrentSubscriber
+        public ISubscriber CurrentSubscriber
         {
             get
             {
@@ -110,6 +110,11 @@ namespace Nhea.Data.Repository.RedisRepository
                             defaultDatabase = Convert.ToInt32(connectionStringVal.Replace("defaultDatabase=", String.Empty));
                             break;
                         }
+                    }
+
+                    if (defaultDatabase == null)
+                    {
+                        defaultDatabase = 0;
                     }
                 }
 
