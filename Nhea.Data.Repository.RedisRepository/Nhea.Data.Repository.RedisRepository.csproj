@@ -9,8 +9,9 @@
     <PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
     <PackageTags>repository, nhea, redis, cache</PackageTags>
-    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <PackageReleaseNotes>Minor changes</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
