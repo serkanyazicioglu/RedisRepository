@@ -5,12 +5,12 @@ VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nhea.Data.Repository.RedisRepository", "Nhea.Data.Repository.RedisRepository\Nhea.Data.Repository.RedisRepository.csproj", "{A1FC9A85-03C9-4B5B-8A61-87BBA3FD45B8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "SampleApp\SampleApp.csproj", "{FC22F384-9512-47BF-91F4-3C2524C3BFF4}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{749F6475-A4B1-40F9-94D5-441DC2944C47}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{55CA35CE-3536-4569-93EE-7E6D4D106355}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +22,10 @@ Global
 		{A1FC9A85-03C9-4B5B-8A61-87BBA3FD45B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1FC9A85-03C9-4B5B-8A61-87BBA3FD45B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1FC9A85-03C9-4B5B-8A61-87BBA3FD45B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FC22F384-9512-47BF-91F4-3C2524C3BFF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FC22F384-9512-47BF-91F4-3C2524C3BFF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FC22F384-9512-47BF-91F4-3C2524C3BFF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FC22F384-9512-47BF-91F4-3C2524C3BFF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55CA35CE-3536-4569-93EE-7E6D4D106355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55CA35CE-3536-4569-93EE-7E6D4D106355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55CA35CE-3536-4569-93EE-7E6D4D106355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55CA35CE-3536-4569-93EE-7E6D4D106355}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

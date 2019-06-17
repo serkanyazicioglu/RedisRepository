@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace SampleApp.Repositories
+namespace TestProject.Repositories
 {
     public partial class Member : RedisDocument
     {

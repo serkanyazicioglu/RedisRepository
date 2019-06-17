@@ -27,4 +27,5 @@ variables:
 steps:
 - script: dotnet restore
 - script: dotnet build --configuration $(buildConfiguration)
+- script: dotnet test TestProject --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'

@@ -1,14 +1,15 @@
-﻿using SampleApp.Repositories;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using TestProject.Repositories;
 
-namespace SampleApp
+namespace TestProject
 {
-    class Program
+    [TestClass]
+    public class UnitTests
     {
-        static void Main(string[] args)
+        [TestMethod]
+        public void TestAll()
         {
-            Console.WriteLine("Hello Redis!");
-
             string createdId = string.Empty;
 
             //New Entity
@@ -82,9 +83,6 @@ namespace SampleApp
             //{
             //    memberRepository.SubscriptionTriggered += MemberRepository_SubscriptionTriggered;
             //}
-
-            Console.WriteLine("Job done!");
-            Console.ReadLine();
         }
 
         private static void MemberRepository_SubscriptionTriggered(object sender, Member entity)
