@@ -19,7 +19,7 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: 
+- script: redis-cli -h redis ping
 - script: dotnet restore
 - script: dotnet build --configuration $(buildConfiguration)
 - script: dotnet test TestProject --configuration $(buildConfiguration)
