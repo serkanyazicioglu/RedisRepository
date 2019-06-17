@@ -6,25 +6,20 @@
 trigger:
 - master
 
-resources:
-  containers:
-  - container: my_container
-    image: ubuntu:16.04
-  - container: redis
-    image: redis
-    ports:
-    - 6379
-
 pool:
   vmImage: 'ubuntu-16.04'
 
 services:
-  redis: redis
+  redis: 
+    image: redis
+    ports:
+    - 6379/tcp
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
+- script: 
 - script: dotnet restore
 - script: dotnet build --configuration $(buildConfiguration)
 - script: dotnet test TestProject --configuration $(buildConfiguration)
