@@ -26,7 +26,7 @@ This project references
 
 ### Configuration
 
-First of all creating a base repository class is a good idea to set basic properties.
+First of all creating a base repository class is a good idea to set basic properties like connection string.
 
 ```
 public abstract class BaseRedisRepository<T> : Nhea.Data.Repository.RedisRepository.BaseRedisRepository<T>
@@ -35,7 +35,7 @@ public abstract class BaseRedisRepository<T> : Nhea.Data.Repository.RedisReposit
     public override string ConnectionString => "127.0.0.1:6379,abortConnect=false,connectTimeout=10000,connectRetry=10";
 }
 ```
-You may remove the abstract modifier if you want to use generic repositories or you may create individual repository classes for your documents if you want to set specific properties for that object.
+You may remove the abstract modifier if you want to use generic repositories or you may create individual repository classes for each of your objects if you need to set specific properties.
 ```
 public partial class Member : RedisDocument
 {
@@ -155,7 +155,7 @@ using (MemberRepository memberRepository = new MemberRepository())
 ### Subscription
 In order to use this feature your Redis server must have keyspaces enabled. Redis acts as a PUB/SUB server when this feature is enabled.
 
-To enable this feature run following command via redis-cli. KEA enables all events. Go to official page for further information: https://redis.io/topics/notifications.
+Rrun following command via redis-cli. KEA is a parameter and enables all events. Go to official page for further information about keyspace parameters: https://redis.io/topics/notifications.
 ```
 config set notify-keyspace-events KEA
 ```
