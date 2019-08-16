@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Nhea.Helper;
 using Nhea.Logging;
 using StackExchange.Redis;
 using System;
@@ -252,7 +251,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                         if (!DirtyCheckItems.ContainsKey(entity.Id))
                         {
-                            DirtyCheckItems.Add(entity.Id, JsonHelper.SerializeObject(entity));
+                            DirtyCheckItems.Add(entity.Id, JsonConvert.SerializeObject(entity));
                         }
                     }
                 }
@@ -496,7 +495,7 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (DirtyCheckItems.ContainsKey(entity.Id))
             {
-                var newItem = JsonHelper.SerializeObject(entity);
+                var newItem = JsonConvert.SerializeObject(entity);
 
                 return newItem != DirtyCheckItems[entity.Id];
             }
@@ -531,7 +530,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = JsonHelper.SerializeObject(item);
+                    var newValue = JsonConvert.SerializeObject(item);
 
                     CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: CommandFlags.FireAndForget);
 
