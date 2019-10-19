@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Nhea.Logging;
 using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
@@ -123,7 +122,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         private List<T> Items = new List<T>();
 
-        protected virtual bool EnableCaching => true;
+        protected virtual bool EnableCaching => false;
 
         protected virtual bool PreventSubForAlreadyCachedData => true;
 
@@ -670,13 +669,19 @@ namespace Nhea.Data.Repository.RedisRepository
             }
             catch (Exception ex)
             {
-                Logger.Log(ex);
+                try
+                {
+                    string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
+                    DeleteCachedEntity(key);
+
+                    ex.Data.Add("Key", key);
+                }
+                catch
+                {
+                }
+
+                RedisRepositoryErrorManager.LogException(this, ex);
             }
         }
-    }
-
-    public static class SubscriptionRepositories
-    {
-        public static List<Type> DisabledAutoSubscriptionTypes = new List<Type>();
     }
 }
