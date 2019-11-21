@@ -652,7 +652,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     var receivers = SubscriptionTriggered.GetInvocationList();
                     foreach (SubscriptionTriggeredEventHandler receiver in receivers)
                     {
-                        receiver.BeginInvoke(this, currentData, null, null);
+                        receiver.Invoke(this, currentData);
                     }
                 }
                 else if (redisValue.ToString() == "del")
