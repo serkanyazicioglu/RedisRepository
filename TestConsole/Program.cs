@@ -275,8 +275,9 @@ namespace TestConsole
             {
                 using (MemberRepository memberRepository = new MemberRepository())
                 {
-                    //var member = await memberRepository.GetByIdAsync(id);
-                    var member = memberRepository.GetById(id);
+                    //var member = memberRepository.GetByIdAsync(id).GetAwaiter().GetResult();
+                    var member = await memberRepository.GetByIdAsync(id);
+                    //var member = memberRepository.GetById(id);
 
                     Console.WriteLine(index.ToString().PadLeft(5, '0') + ". " + member.Id);
 

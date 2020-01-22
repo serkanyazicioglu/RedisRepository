@@ -12,7 +12,7 @@ namespace Nhea.Data.Repository.RedisRepository
     {
         public abstract string ConnectionString { get; }
 
-        public virtual CommandFlags SaveCommandFlags => CommandFlags.FireAndForget;
+        public virtual CommandFlags SaveCommandFlags => CommandFlags.None;
 
         public virtual ConnectionTypes ConnectionType => ConnectionTypes.Default;
 
@@ -326,12 +326,52 @@ namespace Nhea.Data.Repository.RedisRepository
 
         private T GetByIdCore(string id)
         {
-            return ReturnRedisValue(CurrentDatabase.StringGet(id));
+            int tryCount = 0;
+
+            while (true)
+            {
+                try
+                {
+                    return ReturnRedisValue(CurrentDatabase.StringGet(id));
+                }
+                catch (Exception ex)
+                {
+                    tryCount++;
+
+                    Task.Delay(5 * tryCount).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    if (tryCount > 5)
+                    {
+                        ex.Data.Add("Id", id);
+                        throw;
+                    }
+                }
+            }
         }
 
         private async Task<T> GetByIdCoreAsync(string id)
         {
-            return ReturnRedisValue(await CurrentDatabase.StringGetAsync(id));
+            int tryCount = 0;
+
+            while (true)
+            {
+                try
+                {
+                    return ReturnRedisValue(await CurrentDatabase.StringGetAsync(id));
+                }
+                catch (Exception ex)
+                {
+                    tryCount++;
+
+                    await Task.Delay(5 * tryCount);
+
+                    if (tryCount > 5)
+                    {
+                        ex.Data.Add("Id", id);
+                        throw;
+                    }
+                }
+            }
         }
 
         private T ReturnRedisValue(RedisValue currentValue)
@@ -637,14 +677,14 @@ namespace Nhea.Data.Repository.RedisRepository
             return CurrentSubscribingRepository;
         }
 
-        private void SubscriptionTriggeredResponse(RedisChannel redisChannel, RedisValue redisValue)
+        private async void SubscriptionTriggeredResponse(RedisChannel redisChannel, RedisValue redisValue)
         {
             try
             {
                 if (redisValue.ToString() == "set")
                 {
                     string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
-                    var currentData = GetByIdCore(key);
+                    T currentData = await GetByIdCoreAsync(key);
 
                     if (EnableCaching)
                     {
