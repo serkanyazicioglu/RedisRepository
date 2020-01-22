@@ -9,10 +9,10 @@
     <PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
     <PackageTags>repository, nhea, redis, cache</PackageTags>
-    <PackageReleaseNotes>Fixed subscription trigger on .net core</PackageReleaseNotes>
+    <PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <Version>1.2</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

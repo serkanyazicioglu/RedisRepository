@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using System.Threading.Tasks;
 
 namespace Nhea.Data.Repository.RedisRepository
 {
@@ -12,69 +12,67 @@ namespace Nhea.Data.Repository.RedisRepository
     {
         public abstract string ConnectionString { get; }
 
-        private static object connectLockObject = new object();
+        public virtual CommandFlags SaveCommandFlags => CommandFlags.FireAndForget;
 
-        private static ConnectionMultiplexer connection = null;
+        public virtual ConnectionTypes ConnectionType => ConnectionTypes.Default;
+
+        public virtual ConnectionVotingTypes ConnectionVotingType => ConnectionVotingTypes.LeastLoaded;
+
+        public virtual Func<Lazy<ConnectionMultiplexer>, object> CustomConnectionVotingFilter => null;
+
+        public virtual int PoolSize => 5;
+
+        public virtual TimeSpan CacheExpiration => TimeSpan.FromMinutes(30);
+
+        Lazy<ConnectionMultiplexer> lazyConnection = null;
+
         public ConnectionMultiplexer Connection
         {
             get
             {
-                if (connection == null)
+                if (this.ConnectionType == ConnectionTypes.Default)
                 {
-                    lock (connectLockObject)
+                    return ConnectionMultiplexerCollection.GetConnection(ConnectionString);
+                }
+                else if (this.ConnectionType == ConnectionTypes.Lazy)
+                {
+                    if (lazyConnection == null)
                     {
-                        if (connection == null)
-                        {
-                            connection = ConnectionMultiplexer.Connect(ConnectionString);
-                        }
+                        lazyConnection = new Lazy<ConnectionMultiplexer>(() => { return ConnectionMultiplexer.Connect(ConnectionString); });
                     }
+
+                    return lazyConnection.Value;
+                }
+                else if (this.ConnectionType == ConnectionTypes.ConnectionPool)
+                {
+                    return RedisConnectionPoolCollection.GetConnectionPool(ConnectionString, PoolSize, ConnectionVotingType, CustomConnectionVotingFilter).Connection;
                 }
 
-                return connection;
+                return null;
             }
         }
 
-        private static object databaseLockObject = new object();
-
-        public static IDatabase currentDatabase = null;
         public IDatabase CurrentDatabase
         {
             get
             {
-                if (currentDatabase == null)
-                {
-                    lock (databaseLockObject)
-                    {
-                        if (currentDatabase == null)
-                        {
-                            currentDatabase = Connection.GetDatabase();
-                        }
-                    }
-                }
-
-                return currentDatabase;
+                return Connection.GetDatabase();
             }
         }
 
-        private static object serverLockObject = new object();
-
-        public static IServer currentServer = null;
         public IServer CurrentServer
         {
             get
             {
-                if (currentServer == null)
-                {
-                    lock (serverLockObject)
-                    {
-                        if (currentServer == null)
-                        {
-                            currentServer = Connection.GetServer(Connection.GetEndPoints().First());
-                        }
-                    }
-                }
+                return Connection.GetServer(Connection.GetEndPoints().First());
+            }
+        }
 
-                return currentServer;
+        public ConnectionMultiplexer SubscriptionConnection
+        {
+            get
+            {
+                return ConnectionMultiplexerCollection.GetSubscriptionConnection(ConnectionString);
             }
         }
 
@@ -85,7 +83,7 @@ namespace Nhea.Data.Repository.RedisRepository
             {
                 if (currentSubscriber == null)
                 {
-                    currentSubscriber = Connection.GetSubscriber();
+                    currentSubscriber = SubscriptionConnection.GetSubscriber();
                 }
 
                 return currentSubscriber;
@@ -120,7 +118,7 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
-        private List<T> Items = new List<T>();
+        private Dictionary<string, T> Items = new Dictionary<string, T>();
 
         protected virtual bool EnableCaching => false;
 
@@ -156,7 +154,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                 if (cachedData == null || cachedData.ModifyDate < entity.ModifyDate)
                 {
-                    CurrentMemoryCache.Set(entity.Id, entity, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(30) });
+                    CurrentMemoryCache.Set(entity.Id, entity, new CacheItemPolicy { SlidingExpiration = CacheExpiration });
                     return true;
                 }
             }
@@ -168,7 +166,7 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (EnableCaching)
             {
-                CurrentMemoryCache.Set(key, value, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(30) });
+                CurrentMemoryCache.Set(key, value, new CacheItemPolicy { SlidingExpiration = CacheExpiration });
             }
         }
 
@@ -205,10 +203,7 @@ namespace Nhea.Data.Repository.RedisRepository
             var entity = new T();
             entity.CreateDate = DateTime.Now;
 
-            lock (lockObject)
-            {
-                Items.Add(entity);
-            }
+            Items.Add(entity.Id, entity);
 
             return entity;
         }
@@ -226,32 +221,27 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
-        private object lockObject = new object();
-
         private void AddCore(T entity, bool isNew)
         {
-            lock (lockObject)
+            if (entity != null)
             {
-                if (entity != null)
+                if (Items.ContainsKey(entity.Id))
                 {
-                    if (Items.Any(query => query.Id == entity.Id))
+                    Items.Remove(entity.Id);
+                }
+
+                Items.Add(entity.Id, entity);
+
+                if (!isNew)
+                {
+                    if (EnableCaching)
                     {
-                        Items.RemoveAll(query => query.Id == entity.Id);
+                        SetCachedEntity(entity);
                     }
 
-                    Items.Add(entity);
-
-                    if (!isNew)
+                    if (!DirtyCheckItems.ContainsKey(entity.Id))
                     {
-                        if (EnableCaching)
-                        {
-                            SetCachedEntity(entity);
-                        }
-
-                        if (!DirtyCheckItems.ContainsKey(entity.Id))
-                        {
-                            DirtyCheckItems.Add(entity.Id, JsonConvert.SerializeObject(entity));
-                        }
+                        DirtyCheckItems.Add(entity.Id, JsonConvert.SerializeObject(entity));
                     }
                 }
             }
@@ -259,16 +249,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Remove(T entity)
         {
-            lock (lockObject)
+            if (entity != null && Items.ContainsKey(entity.Id))
             {
-                if (entity != null)
-                {
-                    Items.RemoveAll(query => query.Id == entity.Id);
-                }
+                Items.Remove(entity.Id);
             }
         }
-
-        private static ConcurrentDictionary<string, object> LockObjects = new ConcurrentDictionary<string, object>();
 
         private T GetFromCacheSafely(string id)
         {
@@ -303,32 +288,54 @@ namespace Nhea.Data.Repository.RedisRepository
                 return cachedEntity;
             }
 
-            var lockObject = LockObjects.GetOrAdd(id, new object());
+            var entity = GetByIdCore(id);
 
-            lock (lockObject)
+            if (entity != null)
             {
-                cachedEntity = GetFromCacheSafely(id);
-
-                if (cachedEntity != null)
-                {
-                    return cachedEntity;
-                }
-
-                var entity = GetByIdCore(id);
-
-                if (entity != null)
-                {
-                    AddCore(entity, false);
-                }
-
-                return entity;
+                AddCore(entity, false);
             }
+
+            return entity;
+        }
+
+        public async Task<T> GetByIdAsync(string id)
+        {
+            var baseKey = Activator.CreateInstance<T>().BaseKey;
+
+            if (!id.StartsWith(baseKey))
+            {
+                id = baseKey + id;
+            }
+
+            var cachedEntity = GetFromCacheSafely(id);
+
+            if (cachedEntity != null)
+            {
+                return cachedEntity;
+            }
+
+            var entity = await GetByIdCoreAsync(id);
+
+            if (entity != null)
+            {
+                AddCore(entity, false);
+            }
+
+            return entity;
         }
 
         private T GetByIdCore(string id)
         {
-            var currentValue = CurrentDatabase.StringGet(id);
+            return ReturnRedisValue(CurrentDatabase.StringGet(id));
+        }
 
+        private async Task<T> GetByIdCoreAsync(string id)
+        {
+            return ReturnRedisValue(await CurrentDatabase.StringGetAsync(id));
+        }
+
+        private T ReturnRedisValue(RedisValue currentValue)
+        {
             if (currentValue.IsNullOrEmpty)
             {
                 return null;
@@ -465,9 +472,15 @@ namespace Nhea.Data.Repository.RedisRepository
             Items = null;
             DirtyCheckItems = null;
 
-            foreach (var subscription in Subscriptions)
+            try
             {
-                Unsubscribe(subscription);
+                foreach (var subscription in Subscriptions)
+                {
+                    Unsubscribe(subscription);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -509,7 +522,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 expiration = Expiration;
             }
 
-            var savingList = Items.ToList();
+            var savingList = Items.Values.ToList();
 
             for (int i = 0; i < savingList.Count(); i++)
             {
@@ -531,7 +544,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                     var newValue = JsonConvert.SerializeObject(item);
 
-                    CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: CommandFlags.FireAndForget);
+                    CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
 
                     if (DirtyCheckItems.ContainsKey(item.Id))
                     {
