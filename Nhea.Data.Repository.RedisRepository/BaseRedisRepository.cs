@@ -118,8 +118,6 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
-        private Dictionary<string, T> Items = new Dictionary<string, T>();
-
         protected virtual bool EnableCaching => false;
 
         protected virtual bool PreventSubForAlreadyCachedData => true;
@@ -196,6 +194,8 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
+        private List<T> Items = new List<T>();
+
         private Dictionary<string, string> DirtyCheckItems = new Dictionary<string, string>();
 
         public T CreateNew()
@@ -203,7 +203,7 @@ namespace Nhea.Data.Repository.RedisRepository
             var entity = new T();
             entity.CreateDate = DateTime.Now;
 
-            Items.Add(entity.Id, entity);
+            Items.Add(entity);
 
             return entity;
         }
@@ -225,12 +225,12 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (entity != null)
             {
-                if (Items.ContainsKey(entity.Id))
+                if (Items.Any(query => query.Id == entity.Id))
                 {
-                    Items.Remove(entity.Id);
+                    Items.RemoveAll(query => query.Id == entity.Id);
                 }
 
-                Items.Add(entity.Id, entity);
+                Items.Add(entity);
 
                 if (!isNew)
                 {
@@ -249,9 +249,9 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Remove(T entity)
         {
-            if (entity != null && Items.ContainsKey(entity.Id))
+            if (entity != null)
             {
-                Items.Remove(entity.Id);
+                Items.RemoveAll(query => query.Id == entity.Id);
             }
         }
 
@@ -522,7 +522,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 expiration = Expiration;
             }
 
-            var savingList = Items.Values.ToList();
+            var savingList = Items.ToList();
 
             for (int i = 0; i < savingList.Count(); i++)
             {
