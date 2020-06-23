@@ -454,6 +454,73 @@ namespace Nhea.Data.Repository.RedisRepository
         }
 
         /// <summary>
+        /// Fetchs items with specific identities.
+        /// </summary>
+        /// <param name="ids">List of identities. Identities shouldn't contain *.</param>
+        /// <returns></returns>
+        public async Task<List<T>> GetAllAsync(List<string> ids)
+        {
+            List<RedisKey> redisKeys = new List<RedisKey>();
+
+            var returnData = new List<T>();
+
+            var baseKey = Activator.CreateInstance<T>().BaseKey;
+
+            foreach (var key in ids)
+            {
+                string redisKey = key;
+
+                if (!key.StartsWith(baseKey))
+                {
+                    redisKey = baseKey + key;
+                }
+
+                if (EnableCaching && CurrentMemoryCache.Contains(redisKey))
+                {
+                    var cachedEntity = GetCachedEntity(redisKey);
+
+                    if (cachedEntity != null)
+                    {
+                        AddCore(cachedEntity, false);
+
+                        returnData.Add(cachedEntity);
+                    }
+                }
+                else
+                {
+                    redisKeys.Add(redisKey);
+                }
+            }
+
+            if (redisKeys.Any())
+            {
+                List<T> items = new List<T>();
+
+                foreach (var redisKey in redisKeys)
+                {
+                    var entity = await GetByIdCoreAsync(redisKey);
+
+                    if (entity != null)
+                    {
+                        AddCore(entity, false);
+
+                        returnData.Add(entity);
+                    }
+                }
+
+                foreach (var redisKey in redisKeys)
+                {
+                    if (!returnData.Any(query => query.Id == redisKey))
+                    {
+                        SetCachedEntity(redisKey, String.Empty);
+                    }
+                }
+            }
+
+            return returnData;
+        }
+
+        /// <summary>
         /// Scans and retrieves items with a specific matching pattern.
         /// </summary>
         /// <param name="pattern">A pattern like basekey:*</param>
@@ -531,13 +598,23 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Delete(T entity)
         {
-            CurrentDatabase.KeyDelete(entity.Id, flags: CommandFlags.FireAndForget);
-            DeleteCachedEntity(entity.Id);
+            Delete(entity.Id);
         }
 
         public void Delete(string id)
         {
             CurrentDatabase.KeyDelete(id, flags: CommandFlags.FireAndForget);
+            DeleteCachedEntity(id);
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            await DeleteAsync(entity.Id);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            await CurrentDatabase.KeyDeleteAsync(id, flags: CommandFlags.FireAndForget);
             DeleteCachedEntity(id);
         }
 
@@ -596,6 +673,47 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
+        public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null)
+        {
+            if (!expiration.HasValue)
+            {
+                expiration = Expiration;
+            }
+
+            var savingList = Items.ToList();
+
+            for (int i = 0; i < savingList.Count(); i++)
+            {
+                var item = savingList[i];
+
+                if (forceUpdate || HasChanges(item))
+                {
+                    item.ModifyDate = DateTime.Now;
+
+                    if (EnableCaching)
+                    {
+                        var cachedItem = GetCachedEntity(item.Id);
+
+                        if (cachedItem != null)
+                        {
+                            cachedItem.ModifyDate = item.ModifyDate;
+                        }
+                    }
+
+                    var newValue = JsonConvert.SerializeObject(item);
+
+                    await CurrentDatabase.StringSetAsync(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
+
+                    if (DirtyCheckItems.ContainsKey(item.Id))
+                    {
+                        DirtyCheckItems.Remove(item.Id);
+                    }
+
+                    DirtyCheckItems.Add(item.Id, newValue);
+                }
+            }
+        }
+
         private List<string> Subscriptions = new List<string>();
 
         public delegate void SubscriptionTriggeredEventHandler(object sender, T entity);
@@ -618,6 +736,23 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
+        public async Task SubscribeAsync(string pattern)
+        {
+            var baseKey = Activator.CreateInstance<T>().BaseKey;
+
+            if (!pattern.StartsWith(baseKey))
+            {
+                pattern = baseKey + pattern;
+            }
+
+            if (!Subscriptions.Contains(pattern))
+            {
+                await CurrentSubscriber.SubscribeAsync("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+
+                Subscriptions.Add(pattern);
+            }
+        }
+
         public void Unsubscribe(string pattern)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
@@ -628,6 +763,20 @@ namespace Nhea.Data.Repository.RedisRepository
             }
 
             CurrentSubscriber.Unsubscribe("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+
+            Subscriptions.Remove(pattern);
+        }
+
+        public async Task UnsubscribeAsync(string pattern)
+        {
+            var baseKey = Activator.CreateInstance<T>().BaseKey;
+
+            if (!pattern.StartsWith(baseKey))
+            {
+                pattern = baseKey + pattern;
+            }
+
+            await CurrentSubscriber.UnsubscribeAsync("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
         }

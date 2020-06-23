@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Authors>Serkan Yazıcıoğlu</Authors>
     <Company>Serkan Yazıcıoğlu</Company>
     <Description>.Net standard repository library for Redis.</Description>
@@ -11,8 +11,8 @@
     <PackageTags>repository, nhea, redis, cache</PackageTags>
     <PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.2</Version>
-    <AssemblyVersion>1.2.2.0</AssemblyVersion>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
