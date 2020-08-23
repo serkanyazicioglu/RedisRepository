@@ -158,7 +158,7 @@ using (MemberRepository memberRepository = new MemberRepository())
 
 You can use both PubSub and Keyspaces feature on Redis.
 
-####PubSub
+#### PubSub
 There are two options to use this feature. You may call Publish method on repository directly or set publish parameter to true on Save method. When subscribing you subscription type must be set to PubSub.
 ```
 using (MemberRepository memberRepository = new MemberRepository())
@@ -174,7 +174,7 @@ using (MemberRepository memberRepository = new MemberRepository())
 }
 ```
 
-####Keyspaces
+#### Keyspaces
 In order to use this feature your Redis server must have keyspaces enabled. When keyspaces are enabled redis automatically pushes all CRUD events to your subscribers.
 
 Run following command via redis-cli. 'KEA' is a variable and enables all events. Go to official page for further information about keyspace parameters: https://redis.io/topics/notifications.
