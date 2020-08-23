@@ -16,6 +16,9 @@ namespace TestConsole
             //New Entity
             using (MemberRepository memberRepository = new MemberRepository())
             {
+                memberRepository.SubscriptionTriggered += MemberRepository_SubscriptionTriggered;
+                memberRepository.Subscribe("*", SubscriptionTypes.PubSub);
+
                 var member = memberRepository.CreateNew();
 
                 member.MemberId = Guid.NewGuid().ToString();
@@ -23,7 +26,7 @@ namespace TestConsole
                 member.UserName = "username";
                 member.Password = "password";
                 member.Email = "test@test.com";
-                memberRepository.Save();
+                memberRepository.Save(publish: true);
 
                 createdId = member.Id;
             }
@@ -35,7 +38,7 @@ namespace TestConsole
                 memberRepository.SubscriptionTriggered += MemberRepository_SubscriptionTriggered;
                 memberRepository.Subscribe("*");
 
-                Parallel.For(0, 5000, async index => { await GetMember(index, createdId); });
+                //Parallel.For(0, 5000, async index => { await GetMember(index, createdId); });
 
                 //Task.Run(async () => { await GetMember(1000); });
                 //Task.Run(async () => { await GetMember(1000); });
@@ -158,105 +161,107 @@ namespace TestConsole
                 //Task.Run(async () => { await GetMember(1000); });
                 //Task.Run(async () => { await GetMember(1000); });
 
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
-                await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
+                //await GetMember(0, createdId);
             }
+
+            await Task.Delay(TimeSpan.FromHours(1));
         }
 
         private static void RedisRepositoryErrorManager_ErrorOccuredEvent(object sender, UnhandledExceptionEventArgs e)
@@ -266,7 +271,7 @@ namespace TestConsole
 
         private static void MemberRepository_SubscriptionTriggered(object sender, Member entity)
         {
-            Console.WriteLine("Subscription triggered!");
+            Console.WriteLine("Subscription triggered! Id: " + entity.Id);
         }
 
         private static async Task GetMember(int index, string id)

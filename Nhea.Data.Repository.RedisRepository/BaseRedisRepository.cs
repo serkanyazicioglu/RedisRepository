@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -241,7 +240,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                     if (!DirtyCheckItems.ContainsKey(entity.Id))
                     {
-                        DirtyCheckItems.Add(entity.Id, JsonConvert.SerializeObject(entity));
+                        DirtyCheckItems.Add(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
                     }
                 }
             }
@@ -382,7 +381,7 @@ namespace Nhea.Data.Repository.RedisRepository
             }
             else
             {
-                return JsonConvert.DeserializeObject<T>(currentValue);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(currentValue);
             }
         }
 
@@ -624,7 +623,7 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (DirtyCheckItems.ContainsKey(entity.Id))
             {
-                var newItem = JsonConvert.SerializeObject(entity);
+                var newItem = System.Text.Json.JsonSerializer.Serialize(entity);
 
                 return newItem != DirtyCheckItems[entity.Id];
             }
@@ -632,7 +631,7 @@ namespace Nhea.Data.Repository.RedisRepository
             return true;
         }
 
-        public void Save(bool forceUpdate = false, TimeSpan? expiration = null)
+        public void Save(bool forceUpdate = false, TimeSpan? expiration = null, bool publish = false)
         {
             if (!expiration.HasValue)
             {
@@ -659,9 +658,14 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = JsonConvert.SerializeObject(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
 
                     CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
+
+                    if (publish)
+                    {
+                        CurrentDatabase.Publish(item.Id, newValue);
+                    }
 
                     if (DirtyCheckItems.ContainsKey(item.Id))
                     {
@@ -673,7 +677,7 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
-        public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null)
+        public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null, bool publish = false)
         {
             if (!expiration.HasValue)
             {
@@ -700,9 +704,14 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = JsonConvert.SerializeObject(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
 
                     await CurrentDatabase.StringSetAsync(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
+
+                    if (publish)
+                    {
+                        await CurrentDatabase.PublishAsync(item.Id, newValue);
+                    }
 
                     if (DirtyCheckItems.ContainsKey(item.Id))
                     {
@@ -712,6 +721,16 @@ namespace Nhea.Data.Repository.RedisRepository
                     DirtyCheckItems.Add(item.Id, newValue);
                 }
             }
+        }
+
+        public long Publish(string key, string value)
+        {
+            return CurrentDatabase.Publish(key, value);
+        }
+
+        public async Task<long> PublishAsync(string key, string value)
+        {
+            return await CurrentDatabase.PublishAsync(key, value);
         }
 
         private List<string> Subscriptions = new List<string>();
@@ -719,7 +738,7 @@ namespace Nhea.Data.Repository.RedisRepository
         public delegate void SubscriptionTriggeredEventHandler(object sender, T entity);
         public event SubscriptionTriggeredEventHandler SubscriptionTriggered;
 
-        public void Subscribe(string pattern)
+        public void Subscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
 
@@ -730,13 +749,18 @@ namespace Nhea.Data.Repository.RedisRepository
 
             if (!Subscriptions.Contains(pattern))
             {
-                CurrentSubscriber.Subscribe("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+                if (subscriptionType == SubscriptionTypes.Keyspace)
+                {
+                    pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
+                }
+
+                CurrentSubscriber.Subscribe(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
                 Subscriptions.Add(pattern);
             }
         }
 
-        public async Task SubscribeAsync(string pattern)
+        public async Task SubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
 
@@ -747,13 +771,18 @@ namespace Nhea.Data.Repository.RedisRepository
 
             if (!Subscriptions.Contains(pattern))
             {
-                await CurrentSubscriber.SubscribeAsync("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+                if (subscriptionType == SubscriptionTypes.Keyspace)
+                {
+                    pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
+                }
+
+                await CurrentSubscriber.SubscribeAsync(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
                 Subscriptions.Add(pattern);
             }
         }
 
-        public void Unsubscribe(string pattern)
+        public void Unsubscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
 
@@ -762,12 +791,17 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = baseKey + pattern;
             }
 
-            CurrentSubscriber.Unsubscribe("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+            if (subscriptionType == SubscriptionTypes.Keyspace)
+            {
+                pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
+            }
+
+            CurrentSubscriber.Unsubscribe(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
         }
 
-        public async Task UnsubscribeAsync(string pattern)
+        public async Task UnsubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
 
@@ -776,7 +810,12 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = baseKey + pattern;
             }
 
-            await CurrentSubscriber.UnsubscribeAsync("__keyspace@" + DefaultDatabase + "__:" + pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+            if (subscriptionType == SubscriptionTypes.Keyspace)
+            {
+                pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
+            }
+
+            await CurrentSubscriber.UnsubscribeAsync(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
         }
@@ -830,50 +869,40 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             try
             {
-                if (redisValue.ToString() == "set")
-                {
-                    string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
-                    T currentData = await GetByIdCoreAsync(key);
+                string channelString = redisChannel.ToString();
 
-                    if (EnableCaching)
+                if (channelString.Contains("__keyspace@"))
+                {
+                    if (redisValue.ToString() == "set")
                     {
-                        if (!SetCachedEntity(currentData))
+                        string key = channelString.Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
+                        T currentData = await GetByIdCoreAsync(key);
+
+                        CompleteSubscriptionTrigger(currentData);
+                    }
+                    else if (redisValue.ToString() == "del")
+                    {
+                        try
                         {
-                            if (PreventSubForAlreadyCachedData)
-                            {
-                                return;
-                            }
+                            string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
+                            DeleteCachedEntity(key);
+                        }
+                        catch
+                        {
                         }
                     }
-
-                    if (SubscriptionTriggered == null)
-                    {
-                        return;
-                    }
-
-                    var receivers = SubscriptionTriggered.GetInvocationList();
-                    foreach (SubscriptionTriggeredEventHandler receiver in receivers)
-                    {
-                        receiver.Invoke(this, currentData);
-                    }
                 }
-                else if (redisValue.ToString() == "del")
+                else
                 {
-                    try
-                    {
-                        string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
-                        DeleteCachedEntity(key);
-                    }
-                    catch
-                    {
-                    }
+                    T currentData = System.Text.Json.JsonSerializer.Deserialize<T>(redisValue);
+                    CompleteSubscriptionTrigger(currentData);
                 }
             }
             catch (Exception ex)
             {
                 try
                 {
-                    string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", String.Empty);
+                    string key = redisChannel.ToString().Replace("__keyspace@" + DefaultDatabase + "__:", string.Empty);
                     DeleteCachedEntity(key);
 
                     ex.Data.Add("Key", key);
@@ -883,6 +912,31 @@ namespace Nhea.Data.Repository.RedisRepository
                 }
 
                 RedisRepositoryErrorManager.LogException(this, ex);
+            }
+        }
+
+        private void CompleteSubscriptionTrigger(T currentData)
+        {
+            if (EnableCaching)
+            {
+                if (!SetCachedEntity(currentData))
+                {
+                    if (PreventSubForAlreadyCachedData)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            if (SubscriptionTriggered == null)
+            {
+                return;
+            }
+
+            var receivers = SubscriptionTriggered.GetInvocationList();
+            foreach (SubscriptionTriggeredEventHandler receiver in receivers)
+            {
+                receiver.Invoke(this, currentData);
             }
         }
     }
