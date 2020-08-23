@@ -164,6 +164,8 @@ There are two options to use this feature. You may call Publish method on reposi
 using (MemberRepository memberRepository = new MemberRepository())
 {
     memberRepository.SubscriptionTriggered += MemberRepository_SubscriptionTriggered;
+
+    //You can manually subscribe for custom events. When EnableCaching is set to true you don't have to call Subscribe method.
     memberRepository.Subscribe("*", SubscriptionTypes.PubSub);
 
     //Set publish to true
@@ -194,5 +196,16 @@ Then all you have to do is just listening to this callback.
 private static void MemberRepository_SubscriptionTriggered(object sender, Member entity)
 {
     Console.WriteLine("Entity has changes! Id: " + entity.Id.ToString());
+}
+```
+#### Caching
+Nhea redis repostories has another in memory caching layer. To opt-in to this feature you can set EnableCaching property to true on your repository. This way your repository automatically listens to publishers and stores them on it's own cache.
+
+If you want use keyspaces remember to enable keyspaces on your server. Otherwise you can use PubSub.
+
+```
+public class MemberRepository : BaseRedisRepository<Member>
+{
+    protected override bool EnableCaching => true;
 }
 ```
