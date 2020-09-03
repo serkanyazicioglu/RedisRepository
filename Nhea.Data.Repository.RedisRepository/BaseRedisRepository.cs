@@ -738,6 +738,11 @@ namespace Nhea.Data.Repository.RedisRepository
         public delegate void SubscriptionTriggeredEventHandler(object sender, T entity);
         public event SubscriptionTriggeredEventHandler SubscriptionTriggered;
 
+        public void Subscribe(string pattern)
+        {
+            Subscribe(pattern, subscriptionType: SubscriptionTypes.Keyspace);
+        }
+
         public void Subscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
@@ -758,6 +763,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
                 Subscriptions.Add(pattern);
             }
+        }
+
+        public async Task SubscribeAsync(string pattern)
+        {
+            await SubscribeAsync(pattern, subscriptionType: SubscriptionTypes.Keyspace);
         }
 
         public async Task SubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
@@ -782,6 +792,11 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
+        public void Unsubscribe(string pattern)
+        {
+            Unsubscribe(pattern, subscriptionType: SubscriptionTypes.Keyspace);
+        }
+
         public void Unsubscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
             var baseKey = Activator.CreateInstance<T>().BaseKey;
@@ -799,6 +814,11 @@ namespace Nhea.Data.Repository.RedisRepository
             CurrentSubscriber.Unsubscribe(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
+        }
+
+        public async Task UnsubscribeAsync(string pattern)
+        {
+            await UnsubscribeAsync(pattern, subscriptionType: SubscriptionTypes.Keyspace);
         }
 
         public async Task UnsubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
