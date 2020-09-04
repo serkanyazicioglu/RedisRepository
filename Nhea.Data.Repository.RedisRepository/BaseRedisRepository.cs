@@ -631,6 +631,16 @@ namespace Nhea.Data.Repository.RedisRepository
             return true;
         }
 
+        public void Save()
+        {
+            Save(false, null, publish: false);
+        }
+
+        public void Save(bool forceUpdate = false, TimeSpan? expiration = null)
+        {
+            Save(forceUpdate, expiration, publish: false);
+        }
+
         public void Save(bool forceUpdate = false, TimeSpan? expiration = null, bool publish = false)
         {
             if (!expiration.HasValue)
@@ -675,6 +685,16 @@ namespace Nhea.Data.Repository.RedisRepository
                     DirtyCheckItems.Add(item.Id, newValue);
                 }
             }
+        }
+
+        public async Task SaveAsync()
+        {
+            await SaveAsync(false, null, false);
+        }
+
+        public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null)
+        {
+            await SaveAsync(forceUpdate, expiration, publish: false);
         }
 
         public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null, bool publish = false)
