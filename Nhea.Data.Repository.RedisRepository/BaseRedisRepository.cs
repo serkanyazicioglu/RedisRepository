@@ -636,6 +636,16 @@ namespace Nhea.Data.Repository.RedisRepository
             Save(false, null, publish: false);
         }
 
+        public void Save(bool forceUpdate)
+        {
+            Save(forceUpdate, null, publish: false);
+        }
+
+        public void Save(TimeSpan? expiration)
+        {
+            Save(false, expiration, publish: false);
+        }
+
         public void Save(bool forceUpdate = false, TimeSpan? expiration = null)
         {
             Save(forceUpdate, expiration, publish: false);
@@ -690,6 +700,16 @@ namespace Nhea.Data.Repository.RedisRepository
         public async Task SaveAsync()
         {
             await SaveAsync(false, null, false);
+        }
+
+        public async Task SaveAsync(bool forceUpdate)
+        {
+            await SaveAsync(forceUpdate, null, publish: false);
+        }
+
+        public async Task SaveAsync(TimeSpan? expiration)
+        {
+            await SaveAsync(false, expiration, publish: false);
         }
 
         public async Task SaveAsync(bool forceUpdate = false, TimeSpan? expiration = null)
