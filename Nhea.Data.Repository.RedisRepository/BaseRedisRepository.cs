@@ -768,9 +768,19 @@ namespace Nhea.Data.Repository.RedisRepository
             return CurrentDatabase.Publish(key, value);
         }
 
+        public long Publish(T entity)
+        {
+            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
+        }
+
         public async Task<long> PublishAsync(string key, string value)
         {
             return await CurrentDatabase.PublishAsync(key, value);
+        }
+
+        public async Task<long> PublishAsync(T entity)
+        {
+            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
         }
 
         private List<string> Subscriptions = new List<string>();
