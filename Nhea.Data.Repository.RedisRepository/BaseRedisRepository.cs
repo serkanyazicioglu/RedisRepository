@@ -118,6 +118,7 @@ namespace Nhea.Data.Repository.RedisRepository
         }
 
         protected virtual bool EnableCaching => false;
+        protected virtual SubscriptionTypes CachingSubscriptionType => SubscriptionTypes.Keyspace;
 
         protected virtual bool PreventSubForAlreadyCachedData => true;
 
@@ -922,7 +923,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                                 if (CurrentSubscribingRepository.EnableCaching)
                                 {
-                                    CurrentSubscribingRepository.Subscribe("*");
+                                    CurrentSubscribingRepository.Subscribe("*", subscriptionType: CurrentSubscribingRepository.CachingSubscriptionType);
                                 }
 
                                 break;
