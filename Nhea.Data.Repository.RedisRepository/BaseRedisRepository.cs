@@ -21,7 +21,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public virtual int PoolSize => 5;
 
-        public virtual TimeSpan CacheExpiration => TimeSpan.FromMinutes(30);
+        public virtual TimeSpan CacheExpiration => TimeSpan.FromMinutes(10);
 
         Lazy<ConnectionMultiplexer> lazyConnection = null;
 
@@ -152,7 +152,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                 if (cachedData == null || cachedData.ModifyDate < entity.ModifyDate)
                 {
-                    CurrentMemoryCache.Set(entity.Id, entity, new CacheItemPolicy { SlidingExpiration = CacheExpiration });
+                    CurrentMemoryCache.Set(entity.Id, entity, new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.Add(CacheExpiration) });
                     return true;
                 }
             }
@@ -164,7 +164,7 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (EnableCaching)
             {
-                CurrentMemoryCache.Set(key, value, new CacheItemPolicy { SlidingExpiration = CacheExpiration });
+                CurrentMemoryCache.Set(key, value, new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.Add(CacheExpiration) });
             }
         }
 
