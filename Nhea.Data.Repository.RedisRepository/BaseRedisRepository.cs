@@ -21,9 +21,31 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public virtual int PoolSize => 5;
 
+        public virtual bool IgnoreNullSerialization => false;
+
         public virtual TimeSpan CacheExpiration => TimeSpan.FromMinutes(10);
 
         Lazy<ConnectionMultiplexer> lazyConnection = null;
+
+        private System.Text.Json.JsonSerializerOptions _JsonIgnoreNullOptions
+        {
+            get
+            {
+                if (IgnoreNullSerialization)
+                {
+                    return new System.Text.Json.JsonSerializerOptions()
+                    {
+                        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                    };
+                }
+
+                return new System.Text.Json.JsonSerializerOptions()
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
+                };
+            }
+        }
+
 
         public ConnectionMultiplexer Connection
         {
@@ -679,7 +701,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item, _JsonIgnoreNullOptions);
 
                     CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
 
@@ -745,7 +767,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item, _JsonIgnoreNullOptions);
 
                     await CurrentDatabase.StringSetAsync(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
 
@@ -771,7 +793,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public long Publish(T entity)
         {
-            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
+            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, _JsonIgnoreNullOptions));
         }
 
         public async Task<long> PublishAsync(string key, string value)
@@ -781,7 +803,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task<long> PublishAsync(T entity)
         {
-            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
+            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, _JsonIgnoreNullOptions));
         }
 
         private List<string> Subscriptions = new List<string>();
