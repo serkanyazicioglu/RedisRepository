@@ -21,6 +21,8 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public virtual int PoolSize => 5;
 
+        protected abstract System.Text.Json.JsonSerializerOptions _JsonSerializerOptions { get; }
+
         public virtual TimeSpan CacheExpiration => TimeSpan.FromMinutes(10);
 
         Lazy<ConnectionMultiplexer> lazyConnection = null;
@@ -679,7 +681,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item, _JsonSerializerOptions);
 
                     CurrentDatabase.StringSet(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
 
@@ -745,7 +747,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         }
                     }
 
-                    var newValue = System.Text.Json.JsonSerializer.Serialize(item);
+                    var newValue = System.Text.Json.JsonSerializer.Serialize(item, _JsonSerializerOptions);
 
                     await CurrentDatabase.StringSetAsync(item.Id, newValue, expiration.Value, flags: SaveCommandFlags);
 
@@ -771,7 +773,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public long Publish(T entity)
         {
-            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
+            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, _JsonSerializerOptions));
         }
 
         public async Task<long> PublishAsync(string key, string value)
@@ -781,7 +783,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task<long> PublishAsync(T entity)
         {
-            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity));
+            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, _JsonSerializerOptions));
         }
 
         private List<string> Subscriptions = new List<string>();
