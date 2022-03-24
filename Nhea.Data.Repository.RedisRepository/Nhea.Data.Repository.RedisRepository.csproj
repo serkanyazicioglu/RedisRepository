@@ -1,26 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Authors>Serkan Yazıcıoğlu</Authors>
-    <Company>Serkan Yazıcıoğlu</Company>
-    <Description>.Net standard repository library for Redis.</Description>
-    <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
-    <PackageTags>repository, nhea, redis, cache</PackageTags>
-    <PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.8</Version>
-    <AssemblyVersion>2.0.8.0</AssemblyVersion>
-    <FileVersion>2.0.8.0</FileVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Authors>Serkan Yazıcıoğlu</Authors>
+		<Company>Serkan Yazıcıoğlu</Company>
+		<Description>.Net standard repository library for Redis.</Description>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
+		<PackageTags>repository, nhea, redis, cache</PackageTags>
+		<PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Version>3.0.0</Version>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Nhea" Version="2.0.0.10" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.62" />
-    <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
-    <PackageReference Include="System.Text.Json" Version="5.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Nhea" Version="2.0.0.10" />
+		<PackageReference Include="StackExchange.Redis" Version="2.5.43" />
+		<PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
+		<PackageReference Include="System.Text.Json" Version="6.0.2" />
+	</ItemGroup>
 
 </Project>
