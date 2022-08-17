@@ -522,6 +522,13 @@ namespace Nhea.Data.Repository.RedisRepository
             return returnData;
         }
 
+        public async Task<List<T>> GetAllAsync(string pattern, int count = 10000)
+        {
+            var listOfKeys = await ScanAsync(pattern, count);
+
+            return await GetAllAsync(listOfKeys);
+        }
+
         /// <summary>
         /// Scans and retrieves items with a specific matching pattern.
         /// </summary>
@@ -572,6 +579,27 @@ namespace Nhea.Data.Repository.RedisRepository
             //    listOfKeys.AddRange(resultLines);
             //}
             //while (nextCursor != 0);
+
+            return listOfKeys;
+        }
+
+        public async Task<List<string>> ScanAsync(string pattern, int count = 10000)
+        {
+            var baseKey = Activator.CreateInstance<T>().BaseKey;
+
+            if (!pattern.StartsWith(baseKey))
+            {
+                pattern = baseKey + pattern;
+            }
+
+            List<string> listOfKeys = new List<string>();
+
+            var keysResult = CurrentServer.KeysAsync(DefaultDatabase, pattern, count);
+
+            await foreach (var key in keysResult)
+            {
+                listOfKeys.Add(key.ToString());
+            }
 
             return listOfKeys;
         }
