@@ -257,6 +257,17 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
+        private string baseKey = null;
+        private string GetBaseKey()
+        {
+            if (baseKey == null)
+            {
+                baseKey = Activator.CreateInstance<T>().BaseKey;
+            }
+
+            return baseKey;
+        }
+
         private T GetFromCacheSafely(string id)
         {
             if (EnableCaching)
@@ -276,7 +287,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public T GetById(string id)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!id.StartsWith(baseKey))
             {
@@ -302,7 +313,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task<T> GetByIdAsync(string id)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!id.StartsWith(baseKey))
             {
@@ -399,7 +410,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var returnData = new List<T>();
 
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             foreach (var key in ids)
             {
@@ -466,7 +477,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var returnData = new List<T>();
 
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             foreach (var key in ids)
             {
@@ -550,7 +561,7 @@ namespace Nhea.Data.Repository.RedisRepository
         /// <returns>List of identities</returns>
         public List<string> Scan(string pattern, int count = 10000)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
@@ -585,7 +596,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task<List<string>> ScanAsync(string pattern, int count = 10000)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
@@ -829,7 +840,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Subscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
@@ -856,7 +867,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task SubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
@@ -883,7 +894,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Unsubscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
@@ -907,7 +918,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task UnsubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = Activator.CreateInstance<T>().BaseKey;
+            var baseKey = GetBaseKey();
 
             if (!pattern.StartsWith(baseKey))
             {
