@@ -18,13 +18,12 @@ Install-Package Nhea.Data.Repository.RedisRepository
 
 ### Prerequisites
 
-Project is built with .NET Standard 2.1
+Project is built with .NET Core 6.0
 
 This project references 
--	Nhea > 2.0.0.4
--	StackExchange.Redis > 2.1.58
--	Newtonsoft.Json > 12.0.3
--	System.Runtime.Caching > 4.7.0
+-	Nhea > 2.0.0.10
+-	StackExchange.Redis > 2.6.48
+-	System.Runtime.Caching > 6.0.0
 
 ### Configuration
 
