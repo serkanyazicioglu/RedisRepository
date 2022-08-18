@@ -1036,14 +1036,7 @@ namespace Nhea.Data.Repository.RedisRepository
             {
                 if (SetCachedEntity(currentData))
                 {
-                    if (CacheChanged != null)
-                    {
-                        var cacheChangeReceivers = CacheChanged.GetInvocationList();
-                        foreach (CachedChangedEventHandler receiver in cacheChangeReceivers)
-                        {
-                            receiver.Invoke(this, currentData);
-                        }
-                    }
+                    CacheChanged?.Invoke(this, currentData);
                 }
                 else
                 {
@@ -1054,16 +1047,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 }
             }
 
-            if (SubscriptionTriggered == null)
-            {
-                return;
-            }
-
-            var receivers = SubscriptionTriggered.GetInvocationList();
-            foreach (SubscriptionTriggeredEventHandler receiver in receivers)
-            {
-                receiver.Invoke(this, currentData);
-            }
+            SubscriptionTriggered?.Invoke(this, currentData);
         }
     }
 }
