@@ -174,14 +174,11 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (EnableCaching)
             {
-                if (CurrentMemoryCache.Contains(key))
-                {
-                    var cachedData = CurrentMemoryCache[key];
+                var cachedData = CurrentMemoryCache.Get(key);
 
-                    if (cachedData != null && cachedData.ToString() != String.Empty)
-                    {
-                        return cachedData as T;
-                    }
+                if (cachedData != null && cachedData.ToString() != String.Empty)
+                {
+                    return cachedData as T;
                 }
             }
 
@@ -203,7 +200,7 @@ namespace Nhea.Data.Repository.RedisRepository
         public T CreateNew()
         {
             var entity = new T();
-            entity.CreateDate = DateTime.Now;
+            entity.CreateDate = DateTime.UtcNow;
 
             Items.Add(entity);
 
@@ -287,11 +284,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public T GetById(string id)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!id.StartsWith(baseKey))
+            if (!id.StartsWith(currentBaseKey))
             {
-                id = baseKey + id;
+                id = currentBaseKey + id;
             }
 
             var cachedEntity = GetFromCacheSafely(id);
@@ -313,11 +310,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task<T> GetByIdAsync(string id)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!id.StartsWith(baseKey))
+            if (!id.StartsWith(currentBaseKey))
             {
-                id = baseKey + id;
+                id = currentBaseKey + id;
             }
 
             var cachedEntity = GetFromCacheSafely(id);
@@ -410,15 +407,15 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var returnData = new List<T>();
 
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
             foreach (var key in ids)
             {
                 string redisKey = key;
 
-                if (!key.StartsWith(baseKey))
+                if (!key.StartsWith(currentBaseKey))
                 {
-                    redisKey = baseKey + key;
+                    redisKey = currentBaseKey + key;
                 }
 
                 if (EnableCaching && CurrentMemoryCache.Contains(redisKey))
@@ -440,8 +437,6 @@ namespace Nhea.Data.Repository.RedisRepository
 
             if (redisKeys.Any())
             {
-                List<T> items = new List<T>();
-
                 foreach (var redisKey in redisKeys)
                 {
                     var entity = GetByIdCore(redisKey);
@@ -477,15 +472,15 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var returnData = new List<T>();
 
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
             foreach (var key in ids)
             {
                 string redisKey = key;
 
-                if (!key.StartsWith(baseKey))
+                if (!key.StartsWith(currentBaseKey))
                 {
-                    redisKey = baseKey + key;
+                    redisKey = currentBaseKey + key;
                 }
 
                 if (EnableCaching && CurrentMemoryCache.Contains(redisKey))
@@ -507,8 +502,6 @@ namespace Nhea.Data.Repository.RedisRepository
 
             if (redisKeys.Any())
             {
-                List<T> items = new List<T>();
-
                 foreach (var redisKey in redisKeys)
                 {
                     var entity = await GetByIdCoreAsync(redisKey);
@@ -561,11 +554,11 @@ namespace Nhea.Data.Repository.RedisRepository
         /// <returns>List of identities</returns>
         public List<string> Scan(string pattern, int count = 10000)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             List<string> listOfKeys = new List<string>();
@@ -577,30 +570,16 @@ namespace Nhea.Data.Repository.RedisRepository
                 listOfKeys.Add(key.ToString());
             }
 
-            //int nextCursor = 0;
-
-            //do
-            //{
-            //    var redisResult = CurrentDatabase.Execute("SCAN", new object[] { nextCursor.ToString(), "MATCH", pattern, "COUNT", count.ToString() });
-            //    var innerResult = (RedisResult[])redisResult;
-
-            //    nextCursor = int.Parse((string)innerResult[0]);
-
-            //    List<string> resultLines = ((string[])innerResult[1]).ToList();
-            //    listOfKeys.AddRange(resultLines);
-            //}
-            //while (nextCursor != 0);
-
             return listOfKeys;
         }
 
         public async Task<List<string>> ScanAsync(string pattern, int count = 10000)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             List<string> listOfKeys = new List<string>();
@@ -663,11 +642,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public bool HasChanges(T entity)
         {
-            if (DirtyCheckItems.ContainsKey(entity.Id))
+            if (DirtyCheckItems.TryGetValue(entity.Id, out var dirtyItem))
             {
                 var newItem = System.Text.Json.JsonSerializer.Serialize(entity);
 
-                return newItem != DirtyCheckItems[entity.Id];
+                return newItem != dirtyItem;
             }
 
             return true;
@@ -702,13 +681,13 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var savingList = Items.ToList();
 
-            for (int i = 0; i < savingList.Count(); i++)
+            for (int i = 0; i < savingList.Count; i++)
             {
                 var item = savingList[i];
 
                 if (forceUpdate || HasChanges(item))
                 {
-                    item.ModifyDate = DateTime.Now;
+                    item.ModifyDate = DateTime.UtcNow;
 
                     if (EnableCaching)
                     {
@@ -729,12 +708,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         CurrentDatabase.Publish(item.Id, newValue);
                     }
 
-                    if (DirtyCheckItems.ContainsKey(item.Id))
-                    {
-                        DirtyCheckItems.Remove(item.Id);
-                    }
-
-                    DirtyCheckItems.Add(item.Id, newValue);
+                    DirtyCheckItems[item.Id] = newValue;
                 }
             }
         }
@@ -768,13 +742,13 @@ namespace Nhea.Data.Repository.RedisRepository
 
             var savingList = Items.ToList();
 
-            for (int i = 0; i < savingList.Count(); i++)
+            for (int i = 0; i < savingList.Count; i++)
             {
                 var item = savingList[i];
 
                 if (forceUpdate || HasChanges(item))
                 {
-                    item.ModifyDate = DateTime.Now;
+                    item.ModifyDate = DateTime.UtcNow;
 
                     if (EnableCaching)
                     {
@@ -795,12 +769,7 @@ namespace Nhea.Data.Repository.RedisRepository
                         await CurrentDatabase.PublishAsync(item.Id, newValue);
                     }
 
-                    if (DirtyCheckItems.ContainsKey(item.Id))
-                    {
-                        DirtyCheckItems.Remove(item.Id);
-                    }
-
-                    DirtyCheckItems.Add(item.Id, newValue);
+                    DirtyCheckItems[item.Id] = newValue;
                 }
             }
         }
@@ -825,7 +794,7 @@ namespace Nhea.Data.Repository.RedisRepository
             return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, JsonSerializerOptions));
         }
 
-        private List<string> Subscriptions = new List<string>();
+        private readonly List<string> Subscriptions = new List<string>();
 
         public delegate void SubscriptionTriggeredEventHandler(object sender, T entity);
         public event SubscriptionTriggeredEventHandler SubscriptionTriggered;
@@ -840,11 +809,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Subscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             if (!Subscriptions.Contains(pattern))
@@ -867,11 +836,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task SubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             if (!Subscriptions.Contains(pattern))
@@ -894,11 +863,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public void Unsubscribe(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             if (subscriptionType == SubscriptionTypes.Keyspace)
@@ -918,11 +887,11 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public async Task UnsubscribeAsync(string pattern, SubscriptionTypes subscriptionType = SubscriptionTypes.Keyspace)
         {
-            var baseKey = GetBaseKey();
+            var currentBaseKey = GetBaseKey();
 
-            if (!pattern.StartsWith(baseKey))
+            if (!pattern.StartsWith(currentBaseKey))
             {
-                pattern = baseKey + pattern;
+                pattern = currentBaseKey + pattern;
             }
 
             if (subscriptionType == SubscriptionTypes.Keyspace)
