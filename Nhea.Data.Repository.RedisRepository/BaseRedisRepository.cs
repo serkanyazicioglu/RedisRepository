@@ -819,6 +819,9 @@ namespace Nhea.Data.Repository.RedisRepository
         public delegate void SubscriptionTriggeredEventHandler(object sender, T entity);
         public event SubscriptionTriggeredEventHandler SubscriptionTriggered;
 
+        public delegate void CachedChangedEventHandler(object sender, T entity);
+        public event CachedChangedEventHandler CacheChanged;
+
         public void Subscribe(string pattern)
         {
             Subscribe(pattern, subscriptionType: SubscriptionTypes.Keyspace);
@@ -1020,7 +1023,18 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (EnableCaching)
             {
-                if (!SetCachedEntity(currentData))
+                if (SetCachedEntity(currentData))
+                {
+                    if (CacheChanged != null)
+                    {
+                        var cacheChangeReceivers = CacheChanged.GetInvocationList();
+                        foreach (CachedChangedEventHandler receiver in cacheChangeReceivers)
+                        {
+                            receiver.Invoke(this, currentData);
+                        }
+                    }
+                }
+                else
                 {
                     if (PreventSubForAlreadyCachedData)
                     {
