@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 
 namespace Nhea.Data.Repository.RedisRepository
 {
@@ -7,7 +6,7 @@ namespace Nhea.Data.Repository.RedisRepository
     {
         public abstract string Id { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract string BaseKey { get; }
 
         public DateTime CreateDate { get; set; }
