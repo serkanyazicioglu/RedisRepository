@@ -1,4 +1,4 @@
-[![.NET](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/main.yml/badge.svg)](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/main.yml)
+[![.NET](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/dotnet-pipeline.yml/badge.svg)](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/dotnet-pipeline.yml)
 [![NuGet](https://img.shields.io/nuget/v/Nhea.Data.Repository.RedisRepository.svg)](https://www.nuget.org/packages/Nhea.Data.Repository.RedisRepository/)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nhea_RedisRepository&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nhea_RedisRepository)
 
