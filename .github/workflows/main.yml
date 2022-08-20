@@ -36,7 +36,7 @@ jobs:
       run: dotnet build *.sln --no-restore --configuration Release
       
     - name: Run tests
-      run: dotnet test TestProject.csproj --configuration Release
+      run: dotnet test */TestProject.csproj --configuration Release
       
     - name: Sonarscanner end
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
