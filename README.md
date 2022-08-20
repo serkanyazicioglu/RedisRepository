@@ -1,5 +1,6 @@
-[![Build Status](https://dev.azure.com/serkanyazicioglu/serkanyazicioglu/_apis/build/status/serkanyazicioglu.RedisRepository?branchName=master)](https://dev.azure.com/serkanyazicioglu/serkanyazicioglu/_build/latest?definitionId=2&branchName=master)
+[![.NET](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/main.yml/badge.svg)](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/main.yml)
 [![NuGet](https://img.shields.io/nuget/v/Nhea.Data.Repository.RedisRepository.svg)](https://www.nuget.org/packages/Nhea.Data.Repository.RedisRepository/)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nhea_RedisRepository&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nhea_RedisRepository)
 
 # Nhea Redis Repository
 
@@ -20,10 +21,8 @@ Install-Package Nhea.Data.Repository.RedisRepository
 
 Project is built with .NET Core 6.0
 
-This project references 
--	Nhea > 2.0.0.10
--	StackExchange.Redis > 2.6.48
--	System.Runtime.Caching > 6.0.0
+This project references
+- StackExchange.Redis > 2.6.48
 
 ### Configuration
 
