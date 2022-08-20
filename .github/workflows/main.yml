@@ -10,6 +10,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
+    services:
+     redis:
+      image: redis
 
     steps:
     - uses: actions/checkout@v3
@@ -30,6 +34,9 @@ jobs:
   
     - name: Build
       run: dotnet build *.sln --no-restore --configuration Release
+      
+    - name: Run tests
+      run: dotnet test TestProject.csproj --configuration Release
       
     - name: Sonarscanner end
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
