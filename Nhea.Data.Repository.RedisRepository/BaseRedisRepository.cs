@@ -27,7 +27,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         Lazy<ConnectionMultiplexer> lazyConnection = null;
 
-        public ConnectionMultiplexer Connection
+        public virtual ConnectionMultiplexer Connection
         {
             get
             {
