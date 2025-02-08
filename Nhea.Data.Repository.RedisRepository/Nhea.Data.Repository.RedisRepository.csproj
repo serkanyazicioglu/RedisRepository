@@ -11,7 +11,7 @@
 		<PackageTags>repository, nhea, redis, cache</PackageTags>
 		<PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>3.0.4</Version>
+		<Version>4.0.1</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
