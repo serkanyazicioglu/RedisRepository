@@ -13,7 +13,7 @@ namespace TestProject
             string createdId = string.Empty;
 
             //New Entity
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 var member = memberRepository.CreateNew();
 
@@ -28,7 +28,7 @@ namespace TestProject
             }
 
             //Update Multiple Entity
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 var members = memberRepository.GetAll("member*");
 
@@ -41,7 +41,7 @@ namespace TestProject
             }
 
             //Update Single Entity
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 var member = memberRepository.GetById(createdId);
 
@@ -53,7 +53,7 @@ namespace TestProject
             }
 
             //IsNew
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 var member = memberRepository.CreateNew();
                 Console.WriteLine("Is my entity new? Answer: " + memberRepository.IsNew(member));
@@ -61,7 +61,7 @@ namespace TestProject
 
 
             //Has Changes
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 var member = memberRepository.GetById(createdId);
 
@@ -73,13 +73,13 @@ namespace TestProject
             }
 
             //Delete Entity
-            using (MemberRepository memberRepository = new MemberRepository())
+            using (MemberRepository memberRepository = new())
             {
                 memberRepository.Delete(createdId);
             }
 
             //Pub Sub. Use this only when you enable keyspace on Redis. Sample cli code: config set notify-keyspace-events KEA
-            //using (MemberRepository memberRepository = new MemberRepository())
+            //using (MemberRepository memberRepository = new())
             //{
             //    memberRepository.SubscriptionTriggered += MemberRepository_SubscriptionTriggered;
             //}

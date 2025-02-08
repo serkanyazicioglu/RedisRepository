@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<Authors>Serkan Yazıcıoğlu</Authors>
 		<Company>Serkan Yazıcıoğlu</Company>
 		<Description>.Net standard repository library for Redis.</Description>
@@ -15,9 +15,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nhea" Version="3.0.0" />
-		<PackageReference Include="StackExchange.Redis" Version="2.6.48" />
-		<PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
+		<PackageReference Include="Nhea" Version="4.0.1" />
+		<PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+		<PackageReference Include="System.Runtime.Caching" Version="9.0.1" />
 	</ItemGroup>
 
 </Project>

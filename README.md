@@ -1,6 +1,5 @@
 [![.NET](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/dotnet-pipeline.yml/badge.svg)](https://github.com/serkanyazicioglu/RedisRepository/actions/workflows/dotnet-pipeline.yml)
 [![NuGet](https://img.shields.io/nuget/v/Nhea.Data.Repository.RedisRepository.svg)](https://www.nuget.org/packages/Nhea.Data.Repository.RedisRepository/)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nhea_RedisRepository&metric=alert_status)](https://sonarcloud.io/project/overview?id=nhea_RedisRepository)
 
 # Nhea Redis Repository
 
@@ -19,10 +18,10 @@ Install-Package Nhea.Data.Repository.RedisRepository
 
 ### Prerequisites
 
-Project is built with .NET Core 6.0
+Project is built with .NET Core 9.0
 
 This project references
-- StackExchange.Redis > 2.6.48
+- StackExchange.Redis > 2.8.24
 
 ### Configuration
 
@@ -80,7 +79,7 @@ public class MemberRepository : BaseRedisRepository<Member>
     public override TimeSpan Expiration => TimeSpan.FromDays(1);
 }
 ```
-Then in your code just initalize a new instance of your class and call appropriate methods for your needs.
+Then in your code just initialize a new instance of your class and call appropriate methods for your needs.
 
 ```
 string createdId = string.Empty;
@@ -197,7 +196,7 @@ private static void MemberRepository_SubscriptionTriggered(object sender, Member
 }
 ```
 #### Caching
-Nhea redis repostories has another in memory caching layer. To opt-in to this feature you can set EnableCaching property to true on your repository. This way your repository automatically listens to publishers and stores them on it's own cache.
+Nhea redis repositories has another in memory caching layer. To opt-in to this feature you can set EnableCaching property to true on your repository. This way your repository automatically listens to publishers and stores them on it's own cache.
 
 If you want use keyspaces remember to enable keyspaces on your server. Otherwise you can use PubSub.
 

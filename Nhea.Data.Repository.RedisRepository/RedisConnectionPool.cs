@@ -1,14 +1,13 @@
 ﻿using StackExchange.Redis;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 
 namespace Nhea.Data.Repository.RedisRepository
 {
     internal class RedisConnectionPool
     {
-        private static readonly object lockPookRoundRobin = new object();
+        private static readonly Lock lockPoolRoundRobin = new();
 
         private Lazy<ConnectionMultiplexer>[] ConnectionMultiplexers = null;
 
@@ -21,7 +20,7 @@ namespace Nhea.Data.Repository.RedisRepository
             this.ConnectionVotingType = connectionVotingType;
             ConnectionMultiplexerFilter = poolFilter;
 
-            lock (lockPookRoundRobin)
+            lock (lockPoolRoundRobin)
             {
                 if (ConnectionMultiplexers == null)
                 {
@@ -44,28 +43,28 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             get
             {
-                lock (lockPookRoundRobin)
+                lock (lockPoolRoundRobin)
                 {
-                    var loadedLazys = ConnectionMultiplexers.Where((lazy) => lazy.IsValueCreated && lazy.Value.IsConnected);
+                    var lazyLoadedConnections = ConnectionMultiplexers.Where((lazy) => lazy.IsValueCreated && lazy.Value.IsConnected);
 
-                    if (loadedLazys.Count() == ConnectionMultiplexers.Count())
+                    if (lazyLoadedConnections.Count() == ConnectionMultiplexers.Length)
                     {
                         if (this.ConnectionVotingType == ConnectionVotingTypes.LeastLoaded)
                         {
-                            return loadedLazys.OrderBy(query => query.Value.GetCounters().TotalOutstanding).First().Value;
+                            return lazyLoadedConnections.OrderBy(query => query.Value.GetCounters().TotalOutstanding).First().Value;
                         }
                         else if (this.ConnectionVotingType == ConnectionVotingTypes.Random)
                         {
-                            return loadedLazys.OrderBy(query => Guid.NewGuid()).First().Value;
+                            return lazyLoadedConnections.OrderBy(query => Guid.NewGuid()).First().Value;
                         }
                         else
                         {
-                            return loadedLazys.OrderBy(this.ConnectionMultiplexerFilter).First().Value;
+                            return lazyLoadedConnections.OrderBy(this.ConnectionMultiplexerFilter).First().Value;
                         }
                     }
                     else
                     {
-                        return ConnectionMultiplexers[loadedLazys.Count()].Value;
+                        return ConnectionMultiplexers[lazyLoadedConnections.Count()].Value;
                     }
                 }
             }

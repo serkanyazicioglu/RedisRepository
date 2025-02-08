@@ -1,8 +1,7 @@
 ﻿using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading;
 
 namespace Nhea.Data.Repository.RedisRepository
 {
@@ -15,7 +14,7 @@ namespace Nhea.Data.Repository.RedisRepository
             ConnectionPools = new ConcurrentDictionary<string, RedisConnectionPool>();
         }
 
-        private static object LockObject = new object();
+        private static readonly Lock LockObject = new();
 
         internal static RedisConnectionPool GetConnectionPool(string connectionString, int poolSize, ConnectionVotingTypes connectionVotingType, Func<Lazy<ConnectionMultiplexer>, object> poolFilter)
         {

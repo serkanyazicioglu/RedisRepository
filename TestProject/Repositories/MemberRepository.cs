@@ -1,9 +1,5 @@
-﻿using Nhea.Data;
-using Nhea.Data.Repository.RedisRepository;
+﻿using Nhea.Data.Repository.RedisRepository;
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
 
 namespace TestProject.Repositories
 {

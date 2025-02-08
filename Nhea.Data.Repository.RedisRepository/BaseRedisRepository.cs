@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Nhea.Data.Repository.RedisRepository
@@ -124,7 +125,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
         protected virtual bool PreventSubForAlreadyCachedData => true;
 
-        private static object cacheLockObject = new object();
+        private static readonly Lock cacheLockObject = new();
 
         private static MemoryCache currentMemoryCache = null;
         private static MemoryCache CurrentMemoryCache
@@ -193,7 +194,7 @@ namespace Nhea.Data.Repository.RedisRepository
             }
         }
 
-        private List<T> Items = new List<T>();
+        private List<T> Items = new();
 
         private Dictionary<string, string> DirtyCheckItems = new Dictionary<string, string>();
 
@@ -397,13 +398,13 @@ namespace Nhea.Data.Repository.RedisRepository
         }
 
         /// <summary>
-        /// Fetchs items with specific identities.
+        /// Fetches items with specific identities.
         /// </summary>
         /// <param name="ids">List of identities. Identities shouldn't contain *.</param>
         /// <returns></returns>
         public List<T> GetAll(List<string> ids)
         {
-            List<RedisKey> redisKeys = new List<RedisKey>();
+            var redisKeys = new List<RedisKey>();
 
             var returnData = new List<T>();
 
@@ -435,7 +436,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 }
             }
 
-            if (redisKeys.Any())
+            if (redisKeys.Count > 0)
             {
                 foreach (var redisKey in redisKeys)
                 {
@@ -453,7 +454,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 {
                     if (!returnData.Any(query => query.Id == redisKey))
                     {
-                        SetCachedEntity(redisKey, String.Empty);
+                        SetCachedEntity(redisKey, string.Empty);
                     }
                 }
             }
@@ -462,13 +463,13 @@ namespace Nhea.Data.Repository.RedisRepository
         }
 
         /// <summary>
-        /// Fetchs items with specific identities.
+        /// Fetches items with specific identities.
         /// </summary>
         /// <param name="ids">List of identities. Identities shouldn't contain *.</param>
         /// <returns></returns>
         public async Task<List<T>> GetAllAsync(List<string> ids)
         {
-            List<RedisKey> redisKeys = new List<RedisKey>();
+            var redisKeys = new List<RedisKey>();
 
             var returnData = new List<T>();
 
@@ -518,7 +519,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 {
                     if (!returnData.Any(query => query.Id == redisKey))
                     {
-                        SetCachedEntity(redisKey, String.Empty);
+                        SetCachedEntity(redisKey, string.Empty);
                     }
                 }
             }
@@ -561,7 +562,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = currentBaseKey + pattern;
             }
 
-            List<string> listOfKeys = new List<string>();
+            var listOfKeys = new List<string>();
 
             var keysResult = CurrentServer.Keys(DefaultDatabase, pattern, count, CommandFlags.None);
 
@@ -582,7 +583,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = currentBaseKey + pattern;
             }
 
-            List<string> listOfKeys = new List<string>();
+            var listOfKeys = new List<string>();
 
             var keysResult = CurrentServer.KeysAsync(DefaultDatabase, pattern, count);
 
