@@ -18,7 +18,7 @@ Install-Package Nhea.Data.Repository.RedisRepository
 
 ### Prerequisites
 
-Project is built with .NET Core 9.0
+Project is built with .NET 10.0
 
 This project references
 - StackExchange.Redis > 2.8.24

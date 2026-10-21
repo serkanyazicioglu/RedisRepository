@@ -1,8 +1,8 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -138,7 +138,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     {
                         if (currentMemoryCache == null)
                         {
-                            currentMemoryCache = new MemoryCache("RedisDataCache");
+                            currentMemoryCache = new MemoryCache(new MemoryCacheOptions());
                         }
                     }
                 }
@@ -155,7 +155,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                 if (cachedData == null || cachedData.ModifyDate < entity.ModifyDate)
                 {
-                    CurrentMemoryCache.Set(entity.Id, entity, new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.Add(CacheExpiration) });
+                    CurrentMemoryCache.Set(entity.Id, entity, DateTimeOffset.Now.Add(CacheExpiration));
                     return true;
                 }
             }
@@ -167,7 +167,7 @@ namespace Nhea.Data.Repository.RedisRepository
         {
             if (EnableCaching)
             {
-                CurrentMemoryCache.Set(key, value, new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.Add(CacheExpiration) });
+                CurrentMemoryCache.Set(key, value, DateTimeOffset.Now.Add(CacheExpiration));
             }
         }
 
@@ -393,7 +393,7 @@ namespace Nhea.Data.Repository.RedisRepository
             }
             else
             {
-                return System.Text.Json.JsonSerializer.Deserialize<T>(currentValue);
+                return System.Text.Json.JsonSerializer.Deserialize<T>((string)currentValue);
             }
         }
 
@@ -419,7 +419,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     redisKey = currentBaseKey + key;
                 }
 
-                if (EnableCaching && CurrentMemoryCache.Contains(redisKey))
+                if (EnableCaching && CurrentMemoryCache.TryGetValue(redisKey, out _))
                 {
                     var cachedEntity = GetCachedEntity(redisKey);
 
@@ -484,7 +484,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     redisKey = currentBaseKey + key;
                 }
 
-                if (EnableCaching && CurrentMemoryCache.Contains(redisKey))
+                if (EnableCaching && CurrentMemoryCache.TryGetValue(redisKey, out _))
                 {
                     var cachedEntity = GetCachedEntity(redisKey);
 
@@ -706,7 +706,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                     if (publish)
                     {
-                        CurrentDatabase.Publish(item.Id, newValue);
+                        CurrentDatabase.Publish(RedisChannel.Literal(item.Id), newValue);
                     }
 
                     DirtyCheckItems[item.Id] = newValue;
@@ -767,7 +767,7 @@ namespace Nhea.Data.Repository.RedisRepository
 
                     if (publish)
                     {
-                        await CurrentDatabase.PublishAsync(item.Id, newValue);
+                        await CurrentDatabase.PublishAsync(RedisChannel.Literal(item.Id), newValue);
                     }
 
                     DirtyCheckItems[item.Id] = newValue;
@@ -777,22 +777,22 @@ namespace Nhea.Data.Repository.RedisRepository
 
         public long Publish(string key, string value)
         {
-            return CurrentDatabase.Publish(key, value);
+            return CurrentDatabase.Publish(RedisChannel.Literal(key), value);
         }
 
         public long Publish(T entity)
         {
-            return CurrentDatabase.Publish(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, JsonSerializerOptions));
+            return CurrentDatabase.Publish(RedisChannel.Literal(entity.Id), System.Text.Json.JsonSerializer.Serialize(entity, JsonSerializerOptions));
         }
 
         public async Task<long> PublishAsync(string key, string value)
         {
-            return await CurrentDatabase.PublishAsync(key, value);
+            return await CurrentDatabase.PublishAsync(RedisChannel.Literal(key), value);
         }
 
         public async Task<long> PublishAsync(T entity)
         {
-            return await CurrentDatabase.PublishAsync(entity.Id, System.Text.Json.JsonSerializer.Serialize(entity, JsonSerializerOptions));
+            return await CurrentDatabase.PublishAsync(RedisChannel.Literal(entity.Id), System.Text.Json.JsonSerializer.Serialize(entity, JsonSerializerOptions));
         }
 
         private readonly List<string> Subscriptions = new List<string>();
@@ -824,7 +824,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
                 }
 
-                CurrentSubscriber.Subscribe(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+                CurrentSubscriber.Subscribe(new RedisChannel(pattern, RedisChannel.PatternMode.Auto), SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
                 Subscriptions.Add(pattern);
             }
@@ -851,7 +851,7 @@ namespace Nhea.Data.Repository.RedisRepository
                     pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
                 }
 
-                await CurrentSubscriber.SubscribeAsync(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+                await CurrentSubscriber.SubscribeAsync(new RedisChannel(pattern, RedisChannel.PatternMode.Auto), SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
                 Subscriptions.Add(pattern);
             }
@@ -876,7 +876,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
             }
 
-            CurrentSubscriber.Unsubscribe(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+            CurrentSubscriber.Unsubscribe(new RedisChannel(pattern, RedisChannel.PatternMode.Auto), SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
         }
@@ -900,7 +900,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 pattern = "__keyspace@" + DefaultDatabase + "__:" + pattern;
             }
 
-            await CurrentSubscriber.UnsubscribeAsync(pattern, SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
+            await CurrentSubscriber.UnsubscribeAsync(new RedisChannel(pattern, RedisChannel.PatternMode.Auto), SubscriptionTriggeredResponse, CommandFlags.FireAndForget);
 
             Subscriptions.Remove(pattern);
         }
@@ -979,7 +979,7 @@ namespace Nhea.Data.Repository.RedisRepository
                 }
                 else
                 {
-                    T currentData = System.Text.Json.JsonSerializer.Deserialize<T>(redisValue);
+                    T currentData = System.Text.Json.JsonSerializer.Deserialize<T>((string)redisValue);
                     CompleteSubscriptionTrigger(currentData);
                 }
             }

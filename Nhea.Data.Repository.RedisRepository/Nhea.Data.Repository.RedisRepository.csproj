@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Authors>Serkan Yazıcıoğlu</Authors>
 		<Company>Serkan Yazıcıoğlu</Company>
 		<Description>.Net standard repository library for Redis.</Description>
@@ -9,15 +9,15 @@
 		<PackageProjectUrl>https://github.com/serkanyazicioglu/RedisRepository</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/serkanyazicioglu/RedisRepository</RepositoryUrl>
 		<PackageTags>repository, nhea, redis, cache</PackageTags>
-		<PackageReleaseNotes>Added connection pooling.</PackageReleaseNotes>
+		<PackageReleaseNotes>Redis Repository is now .Net 10.0 compatible. Updated related packages.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>4.0.1</Version>
+		<Version>6.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nhea" Version="4.0.1" />
-		<PackageReference Include="StackExchange.Redis" Version="2.8.24" />
-		<PackageReference Include="System.Runtime.Caching" Version="9.0.1" />
+		<PackageReference Include="Nhea" Version="5.0.0" />
+		<PackageReference Include="StackExchange.Redis" Version="3.4.5" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
 	</ItemGroup>
 
 </Project>
